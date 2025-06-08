@@ -7,4 +7,9 @@ module.exports = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['json', 'lcov', 'text', 'clover'],
+  globals: {
+    'process.env': {
+      REACT_APP_API_URL: 'http://localhost:3001',
+    },
+  },
 };
