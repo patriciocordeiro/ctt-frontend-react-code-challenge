@@ -1,7 +1,6 @@
 require('dotenv').config();
 const path = require('path');
 const webpack = require('webpack');
-
 const APP_DEV_PORT = process.env.APP_DEV_PORT || 3002;
 module.exports = {
   entry: './src/index.tsx',
