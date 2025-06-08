@@ -7,4 +7,9 @@ describe('ProductList', () => {
     expect(screen.getByTestId('product-list-component')).toBeInTheDocument();
     expect(screen.getByText(/Product List/i)).toBeInTheDocument();
   });
+
+  test('should display "No products available" when no products are provided', () => {
+    render(<ProductList products={[]} />);
+    expect(screen.getByText(/No products available/i)).toBeInTheDocument();
+  });
 });
