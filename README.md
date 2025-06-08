@@ -84,13 +84,21 @@ To stop all Docker services:
 npm run docker:down
 ```
 
+### 4. Testing
+
+This project uses [Jest](https://jestjs.io/) as the test runner and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) for testing React components.
+
+- To run all tests: `npm test`
+- To run tests in watch mode: `npm run test:watch`
+
 ## Available npm Scripts
 
 - `npm start`: Runs the React app in development mode using Webpack Dev Server.
 - `npm run build`: Builds the app for production to the `dist` folder. This script includes pre-build steps for linting and type-checking.
 - `npm run type-check`: Executes TypeScript compiler to check for type errors without emitting JavaScript files.
 - `npm run lint`: Lints the codebase using ESLint.
-- `npm test`: Run test
+- `npm test`: Runs the test suite using Jest.
+- `npm run test:watch`: Runs tests in interactive watch mode.
 - `npm run json-server`: Starts the `json-server` mock API natively on the host machine.
 - `npm run docker:up`: Builds (if necessary) and starts all services defined in `docker-compose.yml`.
 - `npm run docker:down`: Stops and removes the containers, networks, and volumes created by `docker-compose up`.
