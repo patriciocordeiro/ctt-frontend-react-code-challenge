@@ -14,7 +14,7 @@ services:
       - APP_DEV_PORT=${APP_DEV_PORT}
 
   json-server:
-    image: node:22
+    image: node:18
     working_dir: /data
     command: npx json-server --watch db.json --port ${JSON_SERVER_PORT}
     volumes:

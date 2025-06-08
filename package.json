@@ -12,8 +12,9 @@
     "json-server": "json-server --watch db.json --port 3001",
     "lint": "eslint 'src/**/*.{js,jsx,ts,tsx}'",
     "prebuild": "npm run lint && npm run type-check",
-    "docker:up": "docker compose up --build",
-    "docker:down": "docker compose down"
+    "docker:up": "docker compose up",
+    "docker:down": "docker compose down",
+    "docker:rebuild": "docker compose up --build"
   },
   "license": "ISC",
   "dependencies": {
