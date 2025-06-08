@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-
+import dotenv from 'dotenv';
+dotenv.config();
 /**
  * The base URL for API requests, sourced from the environment variable `REACT_APP_API_URL`.
  * This value should be set in the environment configuration to point to the backend server.
@@ -30,13 +31,6 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 /**
  * Wraps a promise to simulate a network delay before resolving or rejecting.
  *
@@ -56,7 +50,6 @@ function withDelay<T>({
   promise: Promise<T>;
   ms?: number;
 }): Promise<T> {
-  console.warn(`Simulating ${ms}ms network delay. Remove for production.`);
   return new Promise((resolve, reject) => {
     promise.then(
       (result) => setTimeout(() => resolve(result), ms),
