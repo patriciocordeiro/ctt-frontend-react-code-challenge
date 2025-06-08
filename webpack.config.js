@@ -1,5 +1,8 @@
+require('dotenv').config();
 const path = require('path');
+const webpack = require('webpack');
 
+const APP_DEV_PORT = process.env.APP_DEV_PORT || 3002;
 module.exports = {
   entry: './src/index.tsx',
   mode: 'development',
@@ -11,12 +14,17 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   devServer: {
-    port: 3002,
+    port: parseInt(APP_DEV_PORT, 10),
     static: {
       directory: path.join(__dirname, 'public'),
     },
     hot: true,
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify(process.env),
+    }),
+  ],
   module: {
     rules: [
       {

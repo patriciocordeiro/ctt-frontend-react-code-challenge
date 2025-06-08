@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '${APP_DEV_PORT}:${APP_DEV_PORT}'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - json-server
+    environment:
+      - APP_DEV_PORT=${APP_DEV_PORT}
+
+  json-server:
+    image: node:22
+    working_dir: /data
+    command: npx json-server --watch db.json --port ${JSON_SERVER_PORT}
+    volumes:
+      - ./db.json:/data/db.json
+    ports:
+      - '${JSON_SERVER_PORT}:${JSON_SERVER_PORT}'
+    environment:
+      - JSON_SERVER_PORT=${JSON_SERVER_PORT}
