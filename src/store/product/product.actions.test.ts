@@ -215,3 +215,116 @@ describe('Product Thunks - updateProduct', () => {
     );
   });
 });
+
+describe('Product Thunks - deleteProduct', () => {
+  const mockedHttpService = httpService as jest.Mocked<typeof httpService>;
+  const productIdToDelete = 'existing-id-456';
+  beforeEach(() => {
+    mockedHttpService.delete.mockReset();
+  });
+
+  it('should dispatch REQUEST and SUCCESS actions on successful product deletion', async () => {
+    mockedHttpService.delete.mockResolvedValueOnce({
+      data: {},
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as InternalAxiosRequestConfig,
+    });
+    const dispatch = jest.fn() as AppDispatch;
+    await productActionCreators.deleteProduct(productIdToDelete)(dispatch);
+
+    expect(mockedHttpService.delete).toHaveBeenCalledWith(
+      `${ProductApiEndpoint.Products}/${productIdToDelete}`
+    );
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      productActionCreators.deleteProductRequest(productIdToDelete)
+    );
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      productActionCreators.deleteProductSuccess(productIdToDelete)
+    );
+  });
+
+  it('should dispatch REQUEST and FAILURE actions on failed product deletion', async () => {
+    const errorMessage = 'Failed to delete';
+    mockedHttpService.delete.mockRejectedValueOnce(new Error(errorMessage));
+    const dispatch = jest.fn() as AppDispatch;
+    await productActionCreators.deleteProduct(productIdToDelete)(dispatch);
+
+    expect(mockedHttpService.delete).toHaveBeenCalledWith(
+      `${ProductApiEndpoint.Products}/${productIdToDelete}`
+    );
+    expect(dispatch).toHaveBeenCalledTimes(2);
+
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      productActionCreators.deleteProductRequest(productIdToDelete)
+    );
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      productActionCreators.deleteProductFailure(
+        productIdToDelete,
+        errorMessage
+      )
+    );
+  });
+});
+
+describe('Product Thunks - deleteProduct', () => {
+  const mockedHttpService = httpService as jest.Mocked<typeof httpService>;
+  const productIdToDelete = 'existing-id-456';
+  beforeEach(() => {
+    mockedHttpService.delete.mockReset();
+  });
+
+  it('should dispatch REQUEST and SUCCESS actions on successful product deletion', async () => {
+    mockedHttpService.delete.mockResolvedValueOnce({
+      data: {},
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as InternalAxiosRequestConfig,
+    });
+    const dispatch = jest.fn() as AppDispatch;
+    await productActionCreators.deleteProduct(productIdToDelete)(dispatch);
+
+    expect(mockedHttpService.delete).toHaveBeenCalledWith(
+      `${ProductApiEndpoint.Products}/${productIdToDelete}`
+    );
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      productActionCreators.deleteProductRequest(productIdToDelete)
+    );
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      productActionCreators.deleteProductSuccess(productIdToDelete)
+    );
+  });
+
+  it('should dispatch REQUEST and FAILURE actions on failed product deletion', async () => {
+    const errorMessage = 'Failed to delete';
+    mockedHttpService.delete.mockRejectedValueOnce(new Error(errorMessage));
+    const dispatch = jest.fn() as AppDispatch;
+    await productActionCreators.deleteProduct(productIdToDelete)(dispatch);
+
+    expect(mockedHttpService.delete).toHaveBeenCalledWith(
+      `${ProductApiEndpoint.Products}/${productIdToDelete}`
+    );
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      productActionCreators.deleteProductRequest(productIdToDelete)
+    );
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      productActionCreators.deleteProductFailure(
+        productIdToDelete,
+        errorMessage
+      )
+    );
+  });
+});

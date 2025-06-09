@@ -7,6 +7,9 @@ import {
   CREATE_PRODUCT_FAILURE,
   CREATE_PRODUCT_REQUEST,
   CREATE_PRODUCT_SUCCESS,
+  DELETE_PRODUCT_FAILURE,
+  DELETE_PRODUCT_REQUEST,
+  DELETE_PRODUCT_SUCCESS,
   FETCH_PRODUCTS_FAILURE,
   FETCH_PRODUCTS_REQUEST,
   FETCH_PRODUCTS_SUCCESS,
@@ -57,6 +60,23 @@ export const updateProductFailure = (error: string): ProductAction => ({
   payload: error,
 });
 
+export const deleteProductRequest = (id: string): ProductAction => ({
+  type: DELETE_PRODUCT_REQUEST,
+  meta: { id },
+});
+export const deleteProductSuccess = (id: string): ProductAction => ({
+  type: DELETE_PRODUCT_SUCCESS,
+  payload: { id },
+});
+export const deleteProductFailure = (
+  id: string,
+  error: string
+): ProductAction => ({
+  type: DELETE_PRODUCT_FAILURE,
+  payload: error,
+  meta: { id },
+});
+
 // Thunk Actions
 export const fetchProducts = () => async (dispatch: AppDispatch) => {
   dispatch(fetchProductsRequest());
@@ -96,5 +116,16 @@ export const updateProduct =
       dispatch(updateProductSuccess(response.data));
     } catch (error) {
       dispatch(updateProductFailure((error as AxiosError).message));
+    }
+  };
+
+export const deleteProduct =
+  (productId: string) => async (dispatch: AppDispatch) => {
+    dispatch(deleteProductRequest(productId));
+    try {
+      await httpService.delete(`${ProductApiEndpoint.Products}/${productId}`);
+      dispatch(deleteProductSuccess(productId));
+    } catch (error) {
+      dispatch(deleteProductFailure(productId, (error as AxiosError).message));
     }
   };
