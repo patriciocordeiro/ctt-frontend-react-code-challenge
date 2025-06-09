@@ -8,8 +8,9 @@ import './ProductModal.css';
 interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: NewProductData) => void;
+  onSubmit: (formData: NewProductData) => Promise<unknown>;
   title: string;
+  saveLoading?: boolean;
 }
 
 export const ProductModal: React.FC<ProductModalProps> = ({
@@ -17,11 +18,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   onClose,
   onSubmit,
   title,
+  saveLoading = false,
 }) => {
   const [description, setDescription] = useState('');
   const [stock, setStock] = useState('');
   const [price, setPrice] = useState('');
   const [categories, setCategories] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(saveLoading);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsSubmitting(saveLoading);
+  }, [saveLoading]);
 
   useEffect(() => {
     if (isOpen) {
@@ -29,34 +37,34 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setStock('');
       setPrice('');
       setCategories('');
+      setIsSubmitting(false);
+      setSubmissionError(null);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleInternalFormSubmit = (e: React.FormEvent) => {
+  const handleInternalFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmissionError(null);
 
-    console.log('Form submitted with data:', {
-      description,
-      stock,
-      price,
-      categories,
-    });
     if (!description || !stock || !price) {
-      alert('Please fill in all required fields (Description, Stock, Price).');
+      window.alert(
+        'Please fill in all required fields (Description, Stock, Price).'
+      );
       return;
     }
     const stockNum = parseInt(stock, 10);
     const priceNum = parseFloat(price);
     if (isNaN(stockNum) || stockNum < 0) {
-      alert('Stock must be a non-negative number.');
+      window.alert('Stock must be a non-negative number.');
       return;
     }
     if (isNaN(priceNum) || priceNum < 0) {
-      alert('Price must be a non-negative number.');
+      window.alert('Price must be a non-negative number.');
       return;
     }
+
     const formData: NewProductData = {
       description,
       stock: stockNum,
@@ -66,7 +74,19 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         .map((cat) => cat.trim())
         .filter((cat) => cat),
     };
-    onSubmit(formData);
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData);
+      onClose();
+    } catch (error) {
+      setSubmissionError(
+        (error as { message: string }).message ||
+          'An unexpected error occurred. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleModalContentClick = (e: React.MouseEvent) => e.stopPropagation();
@@ -75,7 +95,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     <>
       <div
         data-testid='modal-overlay'
-        onClick={onClose}
+        onClick={isSubmitting ? undefined : onClose}
         className='product-modal-overlay'>
         <div
           data-testid='add-product-modal'
@@ -92,77 +112,86 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             onSubmit={handleInternalFormSubmit}
             id='create-product-form'
             noValidate>
-            <div className='product-modal-form-input-group'>
-              <label
-                htmlFor='product-description'
-                className='product-modal-form-label'>
-                Description:
-              </label>
-              <input
-                type='text'
-                id='product-description'
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                className='product-modal-form-input'
-              />
-            </div>
+            <fieldset
+              disabled={isSubmitting}
+              style={{ border: 'none', padding: 0, margin: 0 }}>
+              <div className='product-modal-form-input-group'>
+                <label
+                  htmlFor='product-description'
+                  className='product-modal-form-label'>
+                  Description:
+                </label>
+                <input
+                  type='text'
+                  id='product-description'
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                  className='product-modal-form-input'
+                />
+              </div>
+              <div className='product-modal-form-input-group'>
+                <label
+                  htmlFor='product-stock'
+                  className='product-modal-form-label'>
+                  Stock:
+                </label>
+                <input
+                  type='number'
+                  id='product-stock'
+                  value={stock}
+                  onChange={(e) => setStock(e.target.value)}
+                  required
+                  min='0'
+                  className='product-modal-form-input'
+                />
+              </div>
+              <div className='product-modal-form-input-group'>
+                <label
+                  htmlFor='product-price'
+                  className='product-modal-form-label'>
+                  Price:
+                </label>
+                <input
+                  type='number'
+                  id='product-price'
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  required
+                  min='0'
+                  step='0.01'
+                  className='product-modal-form-input'
+                />
+              </div>
+              <div className='product-modal-form-input-group'>
+                <label
+                  htmlFor='product-categories'
+                  className='product-modal-form-label'>
+                  Categories (comma-separated):
+                </label>
+                <input
+                  type='text'
+                  id='product-categories'
+                  value={categories}
+                  onChange={(e) => setCategories(e.target.value)}
+                  className='product-modal-form-input'
+                />
+              </div>
+            </fieldset>
 
-            <div className='product-modal-form-input-group'>
-              <label
-                htmlFor='product-stock'
-                className='product-modal-form-label'>
-                Stock:
-              </label>
-              <input
-                type='number'
-                id='product-stock'
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                required
-                min='0'
-                className='product-modal-form-input'
-              />
-            </div>
-
-            <div className='product-modal-form-input-group'>
-              <label
-                htmlFor='product-price'
-                className='product-modal-form-label'>
-                Price:
-              </label>
-              <input
-                type='number'
-                id='product-price'
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                required
-                min='0'
-                step='0.01'
-                className='product-modal-form-input'
-              />
-            </div>
-
-            <div className='product-modal-form-input-group'>
-              <label
-                htmlFor='product-categories'
-                className='product-modal-form-label'>
-                Categories (comma-separated):
-              </label>
-              <input
-                type='text'
-                id='product-categories'
-                value={categories}
-                onChange={(e) => setCategories(e.target.value)}
-                className='product-modal-form-input'
-              />
-            </div>
+            {submissionError && (
+              <p role='alert' style={{ color: 'red', marginTop: '10px' }}>
+                {submissionError}
+              </p>
+            )}
 
             <div className='product-modal-form-actions'>
-              <button type='button' onClick={onClose}>
+              <button type='button' onClick={onClose} disabled={isSubmitting}>
                 Cancel
               </button>
-              <button type='submit'>Create Product</button>
+              <button type='submit' disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Create Product'}
+              </button>
             </div>
           </form>
         </div>

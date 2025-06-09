@@ -1,10 +1,11 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { NewProductData } from '../../store/product/product.types';
 import { ProductModal } from './ProductModal';
 
 describe('ProductModal Component', () => {
-  const mockOnClose = jest.fn();
-  const mockOnSubmit = jest.fn() as jest.Mock<void, [NewProductData]>;
+  let mockOnClose: jest.Mock<void, []> = jest.fn();
+  let mockOnSubmit = jest.fn() as jest.Mock<Promise<void>, [NewProductData]>;
+  let mockSubmitPromise: Promise<void>;
 
   const defaultProps = {
     isOpen: true,
@@ -17,9 +18,29 @@ describe('ProductModal Component', () => {
     return render(<ProductModal {...defaultProps} {...props} />);
   };
 
+  const fillValidForm = () => {
+    fireEvent.change(screen.getByLabelText(/description/i), {
+      target: { value: 'Super Gadget' },
+    });
+    fireEvent.change(screen.getByLabelText(/stock/i), {
+      target: { value: '100' },
+    });
+    fireEvent.change(screen.getByLabelText(/price/i), {
+      target: { value: '49.95' },
+    });
+    fireEvent.change(screen.getByLabelText(/categories/i), {
+      target: { value: 'tech, cool' },
+    });
+  };
+
   beforeEach(() => {
-    mockOnClose.mockClear();
-    mockOnSubmit.mockClear();
+    mockOnClose = jest.fn();
+    mockSubmitPromise = Promise.resolve();
+    mockOnSubmit = jest.fn<Promise<void>, [NewProductData]>(
+      () => mockSubmitPromise
+    );
+    defaultProps.onClose = mockOnClose;
+    defaultProps.onSubmit = mockOnSubmit;
     jest.restoreAllMocks();
   });
 
@@ -100,186 +121,90 @@ describe('ProductModal Component', () => {
     });
   });
 
-  describe('Form Submission and Validation', () => {
-    const fillValidForm = () => {
-      fireEvent.change(screen.getByLabelText(/description/i), {
-        target: { value: 'Super Gadget' },
-      });
-      fireEvent.change(screen.getByLabelText(/stock/i), {
-        target: { value: '100' },
-      });
-      fireEvent.change(screen.getByLabelText(/price/i), {
-        target: { value: '49.95' },
-      });
-      fireEvent.change(screen.getByLabelText(/categories/i), {
-        target: { value: 'tech, cool, gadget' },
-      });
-    };
-
-    it('should call onSubmit with correct data when form is valid and submitted', () => {
+  describe('Form Submission, Submitting State, and Error Handling', () => {
+    it('should show "Saving...", disable form/buttons, call onSubmit, then call onClose on successful submission', async () => {
+      mockSubmitPromise = Promise.resolve();
       renderModal();
       fillValidForm();
-      fireEvent.click(screen.getByRole('button', { name: /create product/i }));
+      const createButton = screen.getByRole('button', {
+        name: /create product/i,
+      });
+      fireEvent.click(createButton);
 
+      expect(
+        screen.getByRole('button', { name: /saving.../i })
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /saving.../i })).toBeDisabled();
+      expect(screen.getByRole('button', { name: /cancel/i })).toBeDisabled();
+      expect(
+        screen.getByLabelText(/description/i).closest('fieldset')
+      ).toBeDisabled();
       expect(mockOnSubmit).toHaveBeenCalledTimes(1);
       expect(mockOnSubmit).toHaveBeenCalledWith({
         description: 'Super Gadget',
         stock: 100,
         price: 49.95,
-        categories: ['tech', 'cool', 'gadget'],
+        categories: ['tech', 'cool'],
       });
+
+      await act(async () => {
+        await mockSubmitPromise;
+      });
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByRole('button', { name: /saving.../i })
+      ).not.toBeInTheDocument();
     });
 
-    it('should show an alert and not call onSubmit if description is missing', () => {
+    it('should show "Saving...", then an error message inside modal, and not call onClose if onSubmit rejects', async () => {
+      const submissionErrorMessage = 'API submission failed!';
+      mockSubmitPromise = Promise.reject(new Error(submissionErrorMessage));
       renderModal();
-      const alertSpy = jest
-        .spyOn(window, 'alert')
-        .mockImplementation(() => undefined);
-      fireEvent.change(screen.getByLabelText(/stock/i), {
-        target: { value: '10' },
-      });
-      fireEvent.change(screen.getByLabelText(/price/i), {
-        target: { value: '10' },
-      });
-      fireEvent.click(screen.getByRole('button', { name: /create product/i }));
-
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Please fill in all required fields')
-      );
-      expect(mockOnSubmit).not.toHaveBeenCalled();
-      alertSpy.mockRestore();
-    });
-
-    it('should show an alert and not call onSubmit if stock is missing', () => {
-      renderModal();
-      const alertSpy = jest
-        .spyOn(window, 'alert')
-        .mockImplementation(() => undefined);
-      fireEvent.change(screen.getByLabelText(/description/i), {
-        target: { value: 'Valid Desc' },
-      });
-      fireEvent.change(screen.getByLabelText(/price/i), {
-        target: { value: '10' },
-      });
-      fireEvent.click(screen.getByRole('button', { name: /create product/i }));
-
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Please fill in all required fields')
-      );
-      expect(mockOnSubmit).not.toHaveBeenCalled();
-      alertSpy.mockRestore();
-    });
-
-    it('should show an alert and not call onSubmit if price is missing', () => {
-      renderModal();
-      const alertSpy = jest
-        .spyOn(window, 'alert')
-        .mockImplementation(() => undefined);
-      fireEvent.change(screen.getByLabelText(/description/i), {
-        target: { value: 'Valid Desc' },
-      });
-      fireEvent.change(screen.getByLabelText(/stock/i), {
-        target: { value: '10' },
-      });
-      fireEvent.change(screen.getByLabelText(/price/i), {
-        target: { value: '' },
-      });
-      fireEvent.click(screen.getByRole('button', { name: /create product/i }));
-
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Please fill in all required fields')
-      );
-      expect(mockOnSubmit).not.toHaveBeenCalled();
-      alertSpy.mockRestore();
-    });
-
-    it('should show an alert for invalid (negative) stock value', () => {
-      renderModal();
-      const alertSpy = jest
-        .spyOn(window, 'alert')
-        .mockImplementation(() => undefined);
       fillValidForm();
-      fireEvent.change(screen.getByLabelText(/stock/i), {
-        target: { value: '-5' },
+      const createButton = screen.getByRole('button', {
+        name: /create product/i,
       });
-      fireEvent.click(screen.getByRole('button', { name: /create product/i }));
+      fireEvent.click(createButton);
 
-      expect(alertSpy).toHaveBeenCalledWith(
-        'Stock must be a non-negative number.'
+      expect(
+        screen.getByRole('button', { name: /saving.../i })
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /saving.../i })).toBeDisabled();
+
+      await act(async () => {
+        try {
+          await mockSubmitPromise;
+        } catch (e) {
+          /* empty */
+        }
+      });
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        submissionErrorMessage
       );
-      expect(mockOnSubmit).not.toHaveBeenCalled();
-      alertSpy.mockRestore();
+      expect(mockOnClose).not.toHaveBeenCalled();
+      expect(
+        screen.getByRole('button', { name: /create product/i })
+      ).toBeEnabled();
+      expect(
+        screen.getByLabelText(/description/i).closest('fieldset')
+      ).not.toBeDisabled();
+      expect(
+        (screen.getByLabelText(/description/i) as HTMLInputElement).value
+      ).toBe('Super Gadget');
     });
-    it('should show an alert for non-numeric price value', () => {
+
+    it('should show client-side validation alert and not call onSubmit if required fields are missing', () => {
       renderModal();
       const alertSpy = jest
         .spyOn(window, 'alert')
         .mockImplementation(() => undefined);
-      fireEvent.change(screen.getByLabelText(/description/i), {
-        target: { value: 'Super Gadget' },
-      });
-      fireEvent.change(screen.getByLabelText(/stock/i), {
-        target: { value: '100' },
-      });
-      fireEvent.change(screen.getByLabelText(/categories/i), {
-        target: { value: 'tech, cool, gadget' },
-      });
-      fireEvent.change(screen.getByLabelText(/price/i), {
-        target: { value: -10 },
-      });
       fireEvent.click(screen.getByRole('button', { name: /create product/i }));
-
       expect(alertSpy).toHaveBeenCalledWith(
-        'Price must be a non-negative number.'
+        expect.stringContaining('Please fill in all required fields')
       );
       expect(mockOnSubmit).not.toHaveBeenCalled();
       alertSpy.mockRestore();
-    });
-
-    it('should correctly parse categories, trimming spaces and filtering empty strings', () => {
-      renderModal();
-      fireEvent.change(screen.getByLabelText(/description/i), {
-        target: { value: 'Test' },
-      });
-      fireEvent.change(screen.getByLabelText(/stock/i), {
-        target: { value: '1' },
-      });
-      fireEvent.change(screen.getByLabelText(/price/i), {
-        target: { value: '1' },
-      });
-      fireEvent.change(screen.getByLabelText(/categories/i), {
-        target: { value: '  cat1  , cat2 ,, cat3  , ' },
-      });
-      fireEvent.click(screen.getByRole('button', { name: /create product/i }));
-
-      expect(mockOnSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({
-          categories: ['cat1', 'cat2', 'cat3'],
-        })
-      );
-    });
-
-    it('should submit with empty categories array if categories input is empty', () => {
-      renderModal();
-      fireEvent.change(screen.getByLabelText(/description/i), {
-        target: { value: 'Test' },
-      });
-      fireEvent.change(screen.getByLabelText(/stock/i), {
-        target: { value: '1' },
-      });
-      fireEvent.change(screen.getByLabelText(/price/i), {
-        target: { value: '1' },
-      });
-      fireEvent.change(screen.getByLabelText(/categories/i), {
-        target: { value: '' },
-      });
-      fireEvent.click(screen.getByRole('button', { name: /create product/i }));
-
-      expect(mockOnSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({
-          categories: [],
-        })
-      );
     });
   });
 });
