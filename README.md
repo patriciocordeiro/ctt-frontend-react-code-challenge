@@ -120,3 +120,15 @@ This project uses [Jest](https://jestjs.io/) as the test runner and [React Testi
 - `Dockerfile`: Defines the image for the React application, setting up the Node.js environment, installing dependencies, and running the development server.
 - `docker-compose.yml`: Orchestrates the multi-container setup, including the application (`app`) and the mock API (`json-server`). It handles port mapping, volume mounts for hot-reloading, and environment variable injection from the `.env` file.
 - `.dockerignore`: Specifies files and directories to exclude from the Docker build context, optimizing image size and build times.
+
+## Test-Driven Development (TDD)
+
+This project was developed using Test-Driven Development (TDD).
+
+For each feature:
+
+- I wrote a test first that described the expected behavior
+- Then I wrote the minimal code to make the test pass
+- Finally, I refactored the implementation while keeping tests green
+
+To maintain a clean Git history and stable CI pipeline, I chose **not to commit failing test states**, but the red-green-refactor cycle was followed locally during development.
