@@ -132,3 +132,21 @@ For each feature:
 - Finally, I refactored the implementation while keeping tests green
 
 To maintain a clean Git history and stable CI pipeline, I chose **not to commit failing test states**, but the red-green-refactor cycle was followed locally during development.
+
+## Assumptions Made
+
+In building this application, a few key assumptions guided the development:
+
+- **Backend Simulation:** I've used `json-server` to act as our backend API. This allowed me to focus on the frontend logic while still having a working API for product data and CRUD operations.
+- **Following the API Blueprint:** The provided product schema was my source of truth for how product data is structured. I made sure `json-server` worked with this schema for creating, reading, updating, and deleting products.
+- **Server-Generated IDs:** For new products, I assumed the backend (our `json-server`) would be responsible for generating unique IDs (UUIDs), so the frontend doesn't create them.
+- **Simplified Category Input:** To keep the product form straightforward for this exercise, I opted for a simple comma-separated text input for category IDs. In a real-world app, I'd definitely go for something more user-friendly like a multi-select dropdown.
+- **Core Error Display:** Basic error messages from API calls are shown to the user. More elaborate error recovery, like retry buttons, felt beyond the scope of this particular exercise.
+- **Functional UI Focus:** Since no specific designs were provided, my main goal for the UI was to make it clean, functional, and easy to demonstrate all the required features.
+- **Basic Form Checks:** I've included some basic client-side validation (like ensuring fields aren't empty). I'm assuming the API would handle more robust, definitive validation.
+
+- **Efficient Data Handling with Redux:** To meet the goal of minimizing API calls, my Redux setup fetches the main product list initially. After that, CRUD operations update the local Redux state directly, avoiding unnecessary re-fetches of the entire list unless absolutely needed.
+- **API Confirmation Before UI Update:** For clarity and simplicity in this exercise, UI updates for creating, updating, or deleting products happen after the API confirms the operation was successful. I didn't implement optimistic updates at this stage.
+
+- A detail page for each product could be implemented by adding a route (e.g., `/products/:id`) and a corresponding component to fetch and display the full product details. This would involve using React Router and possibly reusing the product API logic already present in the project.
+- Alternatively, the product detail could be shown using conditional rendering within the main page, for example by displaying a detail panel or modal when a product is selected, without changing the route.
