@@ -11,6 +11,7 @@ import { NewProductData } from '../../store/product/product.types';
 import { RootState } from '../../store/rootReducer';
 import { AppDispatch } from '../../store/store';
 import ConfirmationModal from './ConfirmationModal';
+import './ProductList.css';
 import { ProductModal } from './ProductModal';
 
 export const ProductList: React.FC = () => {
