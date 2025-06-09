@@ -1,18 +1,46 @@
-import React from 'react';
-import { Product } from '../../models/product.model';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProducts } from '../../store/product/product.actions';
+import { RootState } from '../../store/rootReducer';
+import { AppDispatch } from '../../store/store';
 
-interface ProductListProps {
-  products?: Product[];
-}
+export const ProductList: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    items: products,
+    loading,
+    error,
+  } = useSelector((state: RootState) => state.products);
 
-export const ProductList: React.FC<ProductListProps> = ({ products }) => {
+  useEffect(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
+  if (loading) {
+    return (
+      <div data-testid='product-list-component'>
+        <h2>Product List</h2>
+        <p>Loading products...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div data-testid='product-list-component'>
+        <h2>Product List</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div data-testid='product-list-component'>
       <h2>Product List</h2>
-      {products && products.length === 0 ? (
+      {products.length === 0 ? (
         <p>No products available</p>
       ) : (
-        <table className='product-table'>
+        <table>
           <thead>
             <tr>
               <th>ID</th>
@@ -23,14 +51,14 @@ export const ProductList: React.FC<ProductListProps> = ({ products }) => {
             </tr>
           </thead>
           <tbody>
-            {products?.map((item) => (
-              <tr key={item.id}>
-                <td data-label='ID'>{item.id}</td>
-                <td data-label='Description'>{item.description}</td>
-                <td data-label='Stock'>{item.stock}</td>
-                <td data-label='Categories'>{item.categories.join(', ')}</td>
-                <td data-label='Price'>
-                  {item.price.toLocaleString('pt-PT', {
+            {products.map((product) => (
+              <tr key={product.id}>
+                <td>{product.id}</td>
+                <td>{product.description}</td>
+                <td>{product.stock}</td>
+                <td>{product.categories.join(', ')}</td>
+                <td>
+                  {product.price.toLocaleString('pt-PT', {
                     style: 'currency',
                     currency: 'EUR',
                   })}
@@ -43,5 +71,3 @@ export const ProductList: React.FC<ProductListProps> = ({ products }) => {
     </div>
   );
 };
-
-export default ProductList;
