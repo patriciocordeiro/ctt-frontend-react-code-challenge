@@ -12,6 +12,10 @@ export const UPDATE_PRODUCT_REQUEST = 'UPDATE_PRODUCT_REQUEST';
 export const UPDATE_PRODUCT_SUCCESS = 'UPDATE_PRODUCT_SUCCESS';
 export const UPDATE_PRODUCT_FAILURE = 'UPDATE_PRODUCT_FAILURE';
 
+export const DELETE_PRODUCT_REQUEST = 'DELETE_PRODUCT_REQUEST';
+export const DELETE_PRODUCT_SUCCESS = 'DELETE_PRODUCT_SUCCESS';
+export const DELETE_PRODUCT_FAILURE = 'DELETE_PRODUCT_FAILURE';
+
 interface FetchProductsRequestAction {
   type: typeof FETCH_PRODUCTS_REQUEST;
 }
@@ -54,6 +58,20 @@ export interface UpdateProductFailureAction {
   payload: string;
 }
 
+export interface DeleteProductRequestAction {
+  type: typeof DELETE_PRODUCT_REQUEST;
+  meta: { id: string };
+}
+export interface DeleteProductSuccessAction {
+  type: typeof DELETE_PRODUCT_SUCCESS;
+  payload: { id: string };
+}
+export interface DeleteProductFailureAction {
+  type: typeof DELETE_PRODUCT_FAILURE;
+  payload: string;
+  meta: { id: string };
+}
+
 export type ProductAction =
   | FetchProductsRequestAction
   | FetchProductsSuccessAction
@@ -63,7 +81,10 @@ export type ProductAction =
   | CreateProductFailureAction
   | UpdateProductRequestAction
   | UpdateProductSuccessAction
-  | UpdateProductFailureAction;
+  | UpdateProductFailureAction
+  | DeleteProductRequestAction
+  | DeleteProductSuccessAction
+  | DeleteProductFailureAction;
 
 export interface ProductState {
   readonly items: Product[];
