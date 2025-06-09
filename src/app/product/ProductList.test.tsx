@@ -222,7 +222,7 @@ describe('ProductList Component (Connected to Redux)', () => {
       fireEvent.click(addButton);
 
       const modalTitle = await screen.findByRole('heading', {
-        name: /add new product/i,
+        name: /create new product/i,
         level: 2,
       });
       expect(modalTitle).toBeInTheDocument();
@@ -234,7 +234,7 @@ describe('ProductList Component (Connected to Redux)', () => {
       fireEvent.click(addButton);
 
       const modalTitle = await screen.findByRole('heading', {
-        name: /add new product/i,
+        name: /create new product/i,
       });
 
       expect(modalTitle).toBeInTheDocument();
@@ -243,7 +243,7 @@ describe('ProductList Component (Connected to Redux)', () => {
       fireEvent.click(cancelButton);
 
       expect(
-        screen.queryByRole('heading', { name: /add new product/i })
+        screen.queryByRole('heading', { name: /create new product/i })
       ).not.toBeInTheDocument();
     });
   });

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '../../store/product/product.actions';
+import { NewProductData } from '../../store/product/product.types';
 import { RootState } from '../../store/rootReducer';
 import { AppDispatch } from '../../store/store';
+import { ProductModal } from './ProductModal';
 
 export const ProductList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,6 +26,11 @@ export const ProductList: React.FC = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+  };
+
+  const handleCreateProduct = (formData?: NewProductData) => {
+    if (!formData) return;
+    handleCloseModal();
   };
 
   if (loading) {
@@ -57,51 +64,12 @@ export const ProductList: React.FC = () => {
         <button onClick={handleOpenModal}>Add Product</button>{' '}
       </div>
 
-      {/* Modal placeholder (this will be extracted to ProductModal.tsx) */}
-      {isModalOpen && (
-        <div
-          data-testid='add-product-modal'
-          style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            border: '1px solid #ccc',
-            padding: '20px',
-            background: 'white',
-            zIndex: 1000,
-          }}
-          role='dialog'
-          aria-labelledby='modal-title'>
-          <h2 id='modal-title'>Add New Product</h2>
-          <p>Product form will go here...</p>
-          {/* Product form */}
-          <button onClick={handleCloseModal}>Cancel</button>{' '}
-        </div>
-      )}
-      {/* Overlay for modal */}
-      {isModalOpen && (
-        <div
-          onClick={handleCloseModal}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-              handleCloseModal();
-            }
-          }}
-          tabIndex={0}
-          role='button'
-          aria-label='Close modal overlay'
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            zIndex: 999,
-          }}
-        />
-      )}
+      <ProductModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleCreateProduct}
+        title='Create New Product'
+      />
 
       {products.length === 0 ? (
         <p>No products available</p>
