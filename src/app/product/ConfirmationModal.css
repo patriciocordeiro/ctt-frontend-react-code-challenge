@@ -1,0 +1,60 @@
+.confirmation-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirmation-modal {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1051;
+  min-width: 280px;
+  max-width: 400px;
+  text-align: center;
+}
+
+.confirmation-modal-header {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.25rem;
+}
+
+.confirmation-modal-message {
+  margin-bottom: 20px;
+  font-size: 1rem;
+  color: #333;
+}
+
+.confirmation-modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.confirmation-modal-actions button {
+  padding: 8px 15px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.confirmation-modal-actions .cancel-button {
+  margin-right: 10px;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.confirmation-modal-actions .confirm-button {
+  background-color: #dc3545;
+  color: white;
+}
