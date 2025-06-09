@@ -142,3 +142,76 @@ describe('Product Thunks - createProduct', () => {
     );
   });
 });
+
+describe('Product Thunks - updateProduct', () => {
+  const mockedHttpService = httpService as jest.Mocked<typeof httpService>;
+  const productIdToUpdate = 'existing-id-123';
+  const productUpdateData: NewProductData = {
+    description: 'Updated Gadget',
+    stock: 75,
+    price: 249.99,
+    categories: ['electronics', 'updated'],
+  };
+  const updatedProductFromServer: Product = {
+    ...productUpdateData,
+    id: productIdToUpdate,
+  };
+  beforeEach(() => {
+    mockedHttpService.put.mockReset();
+  });
+
+  it('should dispatch REQUEST and SUCCESS actions on successful product update', async () => {
+    mockedHttpService.put.mockResolvedValueOnce({
+      data: updatedProductFromServer,
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as InternalAxiosRequestConfig,
+    });
+    const dispatch = jest.fn() as AppDispatch;
+    await productActionCreators.updateProduct(
+      productIdToUpdate,
+      productUpdateData
+    )(dispatch);
+
+    expect(mockedHttpService.put).toHaveBeenCalledTimes(1);
+    expect(mockedHttpService.put).toHaveBeenCalledWith(
+      `${ProductApiEndpoint.Products}/${productIdToUpdate}`,
+      productUpdateData
+    );
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      productActionCreators.updateProductRequest()
+    );
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      productActionCreators.updateProductSuccess(updatedProductFromServer)
+    );
+  });
+
+  it('should dispatch REQUEST and FAILURE actions on failed product update', async () => {
+    const errorMessage = 'Failed to update';
+    mockedHttpService.put.mockRejectedValueOnce(new Error(errorMessage));
+    const dispatch = jest.fn() as AppDispatch;
+    await productActionCreators.updateProduct(
+      productIdToUpdate,
+      productUpdateData
+    )(dispatch);
+
+    expect(mockedHttpService.put).toHaveBeenCalledTimes(1);
+    expect(mockedHttpService.put).toHaveBeenCalledWith(
+      `${ProductApiEndpoint.Products}/${productIdToUpdate}`,
+      productUpdateData
+    );
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      productActionCreators.updateProductRequest()
+    );
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      productActionCreators.updateProductFailure(errorMessage)
+    );
+  });
+});

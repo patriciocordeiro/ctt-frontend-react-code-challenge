@@ -12,6 +12,9 @@ import {
   FETCH_PRODUCTS_SUCCESS,
   NewProductData,
   ProductAction,
+  UPDATE_PRODUCT_FAILURE,
+  UPDATE_PRODUCT_REQUEST,
+  UPDATE_PRODUCT_SUCCESS,
 } from './product.types';
 
 export const fetchProductsRequest = (): ProductAction => ({
@@ -42,6 +45,18 @@ export const createProductFailure = (error: string): ProductAction => ({
   payload: error,
 });
 
+export const updateProductRequest = (): ProductAction => ({
+  type: UPDATE_PRODUCT_REQUEST,
+});
+export const updateProductSuccess = (product: Product): ProductAction => ({
+  type: UPDATE_PRODUCT_SUCCESS,
+  payload: product,
+});
+export const updateProductFailure = (error: string): ProductAction => ({
+  type: UPDATE_PRODUCT_FAILURE,
+  payload: error,
+});
+
 // Thunk Actions
 export const fetchProducts = () => async (dispatch: AppDispatch) => {
   dispatch(fetchProductsRequest());
@@ -66,5 +81,20 @@ export const createProduct =
       dispatch(createProductSuccess(response.data));
     } catch (error) {
       dispatch(createProductFailure((error as AxiosError).message));
+    }
+  };
+
+export const updateProduct =
+  (productId: string, productData: NewProductData) =>
+  async (dispatch: AppDispatch) => {
+    dispatch(updateProductRequest());
+    try {
+      const response = await httpService.put<Product>(
+        `${ProductApiEndpoint.Products}/${productId}`,
+        productData
+      );
+      dispatch(updateProductSuccess(response.data));
+    } catch (error) {
+      dispatch(updateProductFailure((error as AxiosError).message));
     }
   };
