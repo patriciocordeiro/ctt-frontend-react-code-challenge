@@ -2,7 +2,6 @@ import { render, screen, within } from '@testing-library/react';
 import React from 'react';
 import { Provider } from 'react-redux';
 import {
-  AnyAction,
   applyMiddleware,
   legacy_createStore as createStore,
   Store,
@@ -11,6 +10,7 @@ import { thunk, ThunkDispatch } from 'redux-thunk';
 
 import { Product } from '../../models/product.model';
 import * as productActions from '../../store/product/product.actions';
+import { ProductAction } from '../../store/product/product.types';
 import rootReducer, { RootState } from '../../store/rootReducer';
 import { ProductList } from './ProductList';
 
@@ -38,14 +38,14 @@ const mockProducts: Product[] = [
   },
 ];
 
-type MockStore = Store<RootState, AnyAction> & {
-  dispatch: ThunkDispatch<RootState, unknown, AnyAction>;
+type MockStore = Store<RootState, ProductAction> & {
+  dispatch: ThunkDispatch<RootState, unknown, ProductAction>;
 };
 
 const setupStore = (initialState?: Partial<RootState>): MockStore => {
   return createStore(
     rootReducer,
-    initialState as any,
+    initialState as never,
     applyMiddleware(thunk)
   ) as MockStore;
 };
@@ -57,7 +57,7 @@ const renderWithProviders = (
   const store = setupStore(initialState);
   jest
     .spyOn(productActions, 'fetchProducts')
-    .mockImplementation(() => () => Promise.resolve() as any);
+    .mockImplementation(() => () => Promise.resolve());
 
   return {
     ...render(<Provider store={store}>{ui}</Provider>),
