@@ -11,7 +11,7 @@ interface ConfirmationModalProps {
   children: React.ReactNode;
 }
 
-export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
