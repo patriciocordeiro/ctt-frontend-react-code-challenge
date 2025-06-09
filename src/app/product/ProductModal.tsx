@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
+
 import React, { useEffect, useState } from 'react';
 import { NewProductData } from '../../store/product/product.types';
 import './ProductModal.css';
@@ -8,9 +9,11 @@ import './ProductModal.css';
 interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: NewProductData) => Promise<unknown>;
+  onSubmit: (formData: NewProductData, id: string) => void;
   title: string;
   saveLoading?: boolean;
+  initialData?: Partial<NewProductData>;
+  editingId?: string;
 }
 
 export const ProductModal: React.FC<ProductModalProps> = ({
@@ -19,35 +22,29 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   onSubmit,
   title,
   saveLoading = false,
+  initialData = {},
+  editingId,
 }) => {
-  const [description, setDescription] = useState('');
-  const [stock, setStock] = useState('');
-  const [price, setPrice] = useState('');
-  const [categories, setCategories] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(saveLoading);
-  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [description, setDescription] = useState(initialData.description || '');
+  const [stock, setStock] = useState(initialData.stock?.toString() || '');
+  const [price, setPrice] = useState(initialData.price?.toString() || '');
+  const [categories, setCategories] = useState(
+    initialData.categories?.join(', ') || ''
+  );
 
   useEffect(() => {
-    setIsSubmitting(saveLoading);
-  }, [saveLoading]);
-
-  useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) {
       setDescription('');
       setStock('');
       setPrice('');
       setCategories('');
-      setIsSubmitting(false);
-      setSubmissionError(null);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleInternalFormSubmit = async (e: React.FormEvent) => {
+  const handleInternalFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmissionError(null);
-
     if (!description || !stock || !price) {
       window.alert(
         'Please fill in all required fields (Description, Stock, Price).'
@@ -64,7 +61,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       window.alert('Price must be a non-negative number.');
       return;
     }
-
     const formData: NewProductData = {
       description,
       stock: stockNum,
@@ -74,19 +70,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         .map((cat) => cat.trim())
         .filter((cat) => cat),
     };
-
-    setIsSubmitting(true);
-    try {
-      await onSubmit(formData);
-      onClose();
-    } catch (error) {
-      setSubmissionError(
-        (error as { message: string }).message ||
-          'An unexpected error occurred. Please try again.'
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    onSubmit(formData, editingId || '');
   };
 
   const handleModalContentClick = (e: React.MouseEvent) => e.stopPropagation();
@@ -95,10 +79,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     <>
       <div
         data-testid='modal-overlay'
-        onClick={isSubmitting ? undefined : onClose}
+        onClick={saveLoading ? undefined : onClose}
         className='product-modal-overlay'>
         <div
-          data-testid='add-product-modal'
+          data-testid='product-modal-content'
           role='dialog'
           aria-labelledby='modal-title'
           aria-modal='true'
@@ -107,13 +91,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           <h2 id='modal-title' className='product-modal-header'>
             {title}
           </h2>
-
           <form
             onSubmit={handleInternalFormSubmit}
-            id='create-product-form'
+            id='product-form'
             noValidate>
             <fieldset
-              disabled={isSubmitting}
+              disabled={saveLoading}
               style={{ border: 'none', padding: 0, margin: 0 }}>
               <div className='product-modal-form-input-group'>
                 <label
@@ -178,19 +161,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 />
               </div>
             </fieldset>
-
-            {submissionError && (
-              <p role='alert' style={{ color: 'red', marginTop: '10px' }}>
-                {submissionError}
-              </p>
-            )}
-
             <div className='product-modal-form-actions'>
-              <button type='button' onClick={onClose} disabled={isSubmitting}>
+              <button type='button' onClick={onClose} disabled={saveLoading}>
                 Cancel
               </button>
-              <button type='submit' disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : 'Create Product'}
+              <button type='submit' disabled={saveLoading}>
+                {saveLoading
+                  ? 'Saving...'
+                  : editingId
+                  ? 'Save Changes'
+                  : 'Create Product'}
               </button>
             </div>
           </form>
