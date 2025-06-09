@@ -7,6 +7,9 @@ import {
   FETCH_PRODUCTS_SUCCESS,
   ProductAction,
   ProductState,
+  UPDATE_PRODUCT_FAILURE,
+  UPDATE_PRODUCT_REQUEST,
+  UPDATE_PRODUCT_SUCCESS,
 } from './product.types';
 
 export const initialState: ProductState = {
@@ -55,6 +58,27 @@ export const productReducer = (
         error: null,
       };
     case CREATE_PRODUCT_FAILURE:
+      return {
+        ...state,
+        saveLoading: false,
+        error: action.payload,
+      };
+    case UPDATE_PRODUCT_REQUEST:
+      return {
+        ...state,
+        saveLoading: true,
+        error: null,
+      };
+    case UPDATE_PRODUCT_SUCCESS:
+      return {
+        ...state,
+        saveLoading: false,
+        items: state.items.map((item) =>
+          item.id === action.payload.id ? action.payload : item
+        ),
+        error: null,
+      };
+    case UPDATE_PRODUCT_FAILURE:
       return {
         ...state,
         saveLoading: false,

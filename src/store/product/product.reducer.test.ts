@@ -7,6 +7,9 @@ import {
   CREATE_PRODUCT_SUCCESS,
   ProductAction,
   ProductState,
+  UPDATE_PRODUCT_FAILURE,
+  UPDATE_PRODUCT_REQUEST,
+  UPDATE_PRODUCT_SUCCESS,
 } from './product.types';
 
 describe('productReducer', () => {
@@ -150,5 +153,83 @@ describe('productReducer', () => {
         })
       ).toEqual(expectedState);
     });
+  });
+});
+
+describe('productReducer - Update Product', () => {
+  const product1: Product = {
+    id: '1',
+    description: 'Product One',
+    stock: 10,
+    price: 100,
+    categories: ['A'],
+  };
+  const product2: Product = {
+    id: '2',
+    description: 'Product Two',
+    stock: 20,
+    price: 200,
+    categories: ['B'],
+  };
+  const initialStateWithProducts: ProductState = {
+    ...initialState,
+    items: [product1, product2],
+  };
+
+  const updatedProduct1Data: Product = {
+    id: '1',
+    description: 'Product One Updated',
+    stock: 5,
+    price: 99,
+    categories: ['A', 'updated'],
+  };
+
+  it('should handle UPDATE_PRODUCT_REQUEST', () => {
+    const expectedState: ProductState = {
+      ...initialStateWithProducts,
+      saveLoading: true,
+      error: null,
+    };
+    expect(
+      productReducer(initialStateWithProducts, { type: UPDATE_PRODUCT_REQUEST })
+    ).toEqual(expectedState);
+  });
+
+  it('should handle UPDATE_PRODUCT_SUCCESS', () => {
+    const prevState: ProductState = {
+      ...initialStateWithProducts,
+      saveLoading: true,
+    };
+    const expectedState: ProductState = {
+      ...initialStateWithProducts,
+      saveLoading: false,
+      items: [updatedProduct1Data, product2],
+      error: null,
+    };
+    expect(
+      productReducer(prevState, {
+        type: UPDATE_PRODUCT_SUCCESS,
+        payload: updatedProduct1Data,
+      })
+    ).toEqual(expectedState);
+  });
+
+  it('should handle UPDATE_PRODUCT_FAILURE', () => {
+    const errorMessage = 'Failed to update product';
+    const prevState: ProductState = {
+      ...initialStateWithProducts,
+      saveLoading: true,
+    };
+    const expectedState: ProductState = {
+      ...prevState,
+      saveLoading: false,
+      error: errorMessage,
+    };
+    expect(
+      productReducer(prevState, {
+        type: UPDATE_PRODUCT_FAILURE,
+        payload: errorMessage,
+      })
+    ).toEqual(expectedState);
   });
 });
