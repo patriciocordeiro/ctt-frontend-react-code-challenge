@@ -1,14 +1,14 @@
 {
   "product": [
     {
-      "id": "c2f8e7d3-2b3c-5f9e-0d4c-2b3c4d5e6f7a",
+      "id": "000",
       "description": "Product B description",
       "stock": 589,
       "categories": ["cat-2"],
       "price": 67
     },
     {
-      "id": "d3g9f8e4-3c4d-6g0f-1e5d-3c4d5e6f7a8b",
+      "id": "001",
       "description": "Product C description",
       "stock": 8,
       "categories": ["cat-1"],
