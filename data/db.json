@@ -2,39 +2,10 @@
   "product": [
     {
       "description": "Product B description",
-      "stock": 589,
-      "price": 67,
-      "categories": [
-        "cat-2"
-      ],
+      "stock": 10,
+      "price": 20,
+      "categories": ["cat-2"],
       "id": "000"
-    },
-    {
-      "id": "001",
-      "description": "Product C description",
-      "stock": 8,
-      "categories": [
-        "cat-1"
-      ],
-      "price": 89
-    },
-    {
-      "id": "a75b",
-      "description": "Hello",
-      "stock": 34,
-      "price": 44,
-      "categories": [
-        "hyu"
-      ]
-    },
-    {
-      "id": "b441",
-      "description": "helo sd",
-      "stock": 566,
-      "price": 45,
-      "categories": [
-        "gh"
-      ]
     }
   ]
 }
