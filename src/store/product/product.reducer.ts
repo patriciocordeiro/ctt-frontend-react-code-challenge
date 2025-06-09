@@ -2,6 +2,9 @@ import {
   CREATE_PRODUCT_FAILURE,
   CREATE_PRODUCT_REQUEST,
   CREATE_PRODUCT_SUCCESS,
+  DELETE_PRODUCT_FAILURE,
+  DELETE_PRODUCT_REQUEST,
+  DELETE_PRODUCT_SUCCESS,
   FETCH_PRODUCTS_FAILURE,
   FETCH_PRODUCTS_REQUEST,
   FETCH_PRODUCTS_SUCCESS,
@@ -79,6 +82,25 @@ export const productReducer = (
         error: null,
       };
     case UPDATE_PRODUCT_FAILURE:
+      return {
+        ...state,
+        saveLoading: false,
+        error: action.payload,
+      };
+    case DELETE_PRODUCT_REQUEST:
+      return {
+        ...state,
+        saveLoading: true,
+        error: null,
+      };
+    case DELETE_PRODUCT_SUCCESS:
+      return {
+        ...state,
+        saveLoading: false,
+        items: state.items.filter((item) => item.id !== action.payload.id),
+        error: null,
+      };
+    case DELETE_PRODUCT_FAILURE:
       return {
         ...state,
         saveLoading: false,

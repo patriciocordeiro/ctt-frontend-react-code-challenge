@@ -5,6 +5,9 @@ import {
   CREATE_PRODUCT_FAILURE,
   CREATE_PRODUCT_REQUEST,
   CREATE_PRODUCT_SUCCESS,
+  DELETE_PRODUCT_FAILURE,
+  DELETE_PRODUCT_REQUEST,
+  DELETE_PRODUCT_SUCCESS,
   ProductAction,
   ProductState,
   UPDATE_PRODUCT_FAILURE,
@@ -229,6 +232,107 @@ describe('productReducer - Update Product', () => {
       productReducer(prevState, {
         type: UPDATE_PRODUCT_FAILURE,
         payload: errorMessage,
+      })
+    ).toEqual(expectedState);
+  });
+});
+
+describe('productReducer - Delete Product', () => {
+  const product1: Product = {
+    id: '1',
+    description: 'Product One',
+    stock: 10,
+    price: 100,
+    categories: ['A'],
+  };
+  const product2: Product = {
+    id: '2',
+    description: 'Product Two',
+    stock: 20,
+    price: 200,
+    categories: ['B'],
+  };
+  const product3: Product = {
+    id: '3',
+    description: 'Product Three',
+    stock: 30,
+    price: 300,
+    categories: ['C'],
+  };
+  const initialStateWithProducts: ProductState = {
+    ...initialState,
+    items: [product1, product2, product3],
+  };
+  const idToDelete = '2';
+  const nonExistentId = '99';
+
+  it('should handle DELETE_PRODUCT_REQUEST', () => {
+    const expectedState: ProductState = {
+      ...initialStateWithProducts,
+      saveLoading: true,
+      error: null,
+    };
+    expect(
+      productReducer(initialStateWithProducts, {
+        type: DELETE_PRODUCT_REQUEST,
+        meta: { id: idToDelete },
+      })
+    ).toEqual(expectedState);
+  });
+
+  it('should handle DELETE_PRODUCT_SUCCESS and remove the product from items', () => {
+    const prevState: ProductState = {
+      ...initialStateWithProducts,
+      saveLoading: true,
+    };
+    const expectedState: ProductState = {
+      ...initialStateWithProducts,
+      saveLoading: false,
+      items: [product1, product3],
+      error: null,
+    };
+    expect(
+      productReducer(prevState, {
+        type: DELETE_PRODUCT_SUCCESS,
+        payload: { id: idToDelete },
+      })
+    ).toEqual(expectedState);
+  });
+
+  it('should handle DELETE_PRODUCT_SUCCESS for a non-existent ID (no change to items)', () => {
+    const prevState: ProductState = {
+      ...initialStateWithProducts,
+      saveLoading: true,
+    };
+    const expectedState: ProductState = {
+      ...initialStateWithProducts,
+      saveLoading: false,
+      error: null,
+    };
+    expect(
+      productReducer(prevState, {
+        type: DELETE_PRODUCT_SUCCESS,
+        payload: { id: nonExistentId },
+      })
+    ).toEqual(expectedState);
+  });
+
+  it('should handle DELETE_PRODUCT_FAILURE', () => {
+    const errorMessage = 'Failed to delete product';
+    const prevState: ProductState = {
+      ...initialStateWithProducts,
+      saveLoading: true,
+    };
+    const expectedState: ProductState = {
+      ...prevState,
+      saveLoading: false,
+      error: errorMessage,
+    };
+    expect(
+      productReducer(prevState, {
+        type: DELETE_PRODUCT_FAILURE,
+        payload: errorMessage,
+        meta: { id: idToDelete },
       })
     ).toEqual(expectedState);
   });
