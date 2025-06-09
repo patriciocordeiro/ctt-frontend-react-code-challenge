@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+
+import { Product } from '../../models/product.model';
 import {
   createProduct,
   fetchProducts,
@@ -17,30 +19,46 @@ export const ProductList: React.FC = () => {
     error: listError,
     saveLoading,
   } = useSelector((state: RootState) => state.products);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [prevSaveLoading, setPrevSaveLoading] = useState(false);
 
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setEditingProduct(null);
+  }, []);
 
-  const handleCreateProduct = async (
-    formData: NewProductData
-  ): Promise<void> => {
-    try {
-      await dispatch(createProduct(formData));
-    } catch (error) {
-      console.error(
-        'Create product dispatch failed from ProductList (this error should be displayed in modal):',
-        error
-      );
-      throw error;
+  useEffect(() => {
+    if (prevSaveLoading && !saveLoading && !listError) {
+      handleCloseModal();
+    }
+    setPrevSaveLoading(saveLoading ?? false);
+  }, [saveLoading, listError, prevSaveLoading, handleCloseModal]);
+
+  const handleOpenCreateModal = () => {
+    setEditingProduct(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmitProductForm = (formData: NewProductData, id?: string) => {
+    if (id) {
+      //TODO: dispatch(updateProduct(id, formData));
+    } else {
+      dispatch(createProduct(formData));
     }
   };
 
-  if (listLoading) {
+  if (listLoading && !isModalOpen) {
     return (
       <div
         data-testid='product-list-component'
@@ -51,7 +69,7 @@ export const ProductList: React.FC = () => {
     );
   }
 
-  if (listError) {
+  if (listError && !saveLoading && !isModalOpen) {
     return (
       <div
         data-testid='product-list-component'
@@ -68,20 +86,24 @@ export const ProductList: React.FC = () => {
       className='product-list-container'>
       <div className='product-list-header'>
         <h2 className='product-list-title'>Product List</h2>
-        <button onClick={handleOpenModal} className='add-product-button'>
+        <button onClick={handleOpenCreateModal} className='add-product-button'>
           Add Product
         </button>
       </div>
 
-      <ProductModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSubmit={handleCreateProduct}
-        title='Create New Product'
-        saveLoading={saveLoading}
-      />
+      {isModalOpen && (
+        <ProductModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSubmit={handleSubmitProductForm}
+          title={editingProduct ? 'Edit Product' : 'Create New Product'}
+          saveLoading={saveLoading}
+          initialData={editingProduct || undefined}
+          editingId={editingProduct?.id}
+        />
+      )}
 
-      {products.length === 0 ? (
+      {products.length === 0 && !listLoading ? (
         <p className='no-products-message'>No products available</p>
       ) : (
         <table className='products-table'>
@@ -92,6 +114,7 @@ export const ProductList: React.FC = () => {
               <th>Stock</th>
               <th>Categories</th>
               <th>Price</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -106,6 +129,13 @@ export const ProductList: React.FC = () => {
                     style: 'currency',
                     currency: 'EUR',
                   })}
+                </td>
+                <td>
+                  <button
+                    onClick={() => handleOpenEditModal(product)}
+                    className='edit-button'>
+                    Edit
+                  </button>
                 </td>
               </tr>
             ))}

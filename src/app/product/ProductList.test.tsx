@@ -247,4 +247,57 @@ describe('ProductList Component (Connected to Redux)', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  describe('ProductList Component - Edit Product', () => {
+    const initialStateWithProducts: Partial<RootState> = {
+      products: {
+        items: mockProducts,
+        loading: false,
+        error: null,
+        saveLoading: false,
+      },
+    };
+
+    it('should render an "Edit" button for each product row', () => {
+      renderWithProviders(<ProductList />, initialStateWithProducts);
+      const editButtons = screen.getAllByRole('button', { name: /edit/i });
+      expect(editButtons.length).toBe(mockProducts.length);
+    });
+
+    it('should open the modal with "Edit Product" title and pre-fill form when an "Edit" button is clicked', async () => {
+      renderWithProviders(<ProductList />, initialStateWithProducts);
+      const productToEdit = mockProducts[0];
+
+      const productRow = screen
+        .getByText(productToEdit.description)
+        .closest('tr');
+      if (!productRow)
+        throw new Error('Product row not found for testing edit');
+      const editButton = within(productRow).getByRole('button', {
+        name: /edit/i,
+      });
+
+      fireEvent.click(editButton);
+
+      await screen.findByRole('dialog');
+      await screen.findByDisplayValue(productToEdit.description);
+
+      expect(
+        screen.getByRole('heading', { name: /edit product/i })
+      ).toBeInTheDocument();
+
+      expect(
+        (screen.getByLabelText(/description/i) as HTMLInputElement).value
+      ).toBe(productToEdit.description);
+      expect((screen.getByLabelText(/stock/i) as HTMLInputElement).value).toBe(
+        productToEdit.stock.toString()
+      );
+      expect((screen.getByLabelText(/price/i) as HTMLInputElement).value).toBe(
+        productToEdit.price.toString()
+      );
+      expect(
+        (screen.getByLabelText(/categories/i) as HTMLInputElement).value
+      ).toBe(productToEdit.categories.join(', '));
+    });
+  });
 });
