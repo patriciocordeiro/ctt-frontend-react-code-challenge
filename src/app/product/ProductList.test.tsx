@@ -428,4 +428,99 @@ describe('ProductList Component (Connected to Redux)', () => {
       deleteProductThunkSpy.mockRestore();
     });
   });
+
+  describe('ProductList Component - Product Form Submission', () => {
+    const initialStateWithProducts: Partial<RootState> = {
+      products: {
+        items: mockProducts,
+        loading: false,
+        error: null,
+        saveLoading: false,
+      },
+    };
+
+    it('should dispatch createProduct when submitting form in create mode', async () => {
+      const createProductSpy = jest
+        .spyOn(productActions, 'createProduct')
+        .mockImplementation(() => () => Promise.resolve());
+
+      renderWithProviders(<ProductList />, initialStateWithProducts);
+
+      const addButton = screen.getByRole('button', { name: /add product/i });
+      await act(async () => {
+        fireEvent.click(addButton);
+      });
+
+      fireEvent.change(screen.getByLabelText(/description/i), {
+        target: { value: 'New Product' },
+      });
+      fireEvent.change(screen.getByLabelText(/stock/i), {
+        target: { value: '15' },
+      });
+      fireEvent.change(screen.getByLabelText(/price/i), {
+        target: { value: '123.45' },
+      });
+      fireEvent.change(screen.getByLabelText(/categories/i), {
+        target: { value: 'catA,catB' },
+      });
+
+      const submitButton = screen.getByRole('button', {
+        name: /create product/i,
+      });
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
+
+      expect(createProductSpy).toHaveBeenCalledTimes(1);
+      expect(createProductSpy).toHaveBeenCalledWith({
+        description: 'New Product',
+        stock: 15,
+        price: 123.45,
+        categories: ['catA', 'catB'],
+      });
+
+      createProductSpy.mockRestore();
+    });
+
+    it('should dispatch updateProduct when submitting form in edit mode', async () => {
+      const updateProductSpy = jest
+        .spyOn(productActions, 'updateProduct')
+        .mockImplementation(() => () => Promise.resolve());
+
+      renderWithProviders(<ProductList />, initialStateWithProducts);
+
+      const productToEdit = mockProducts[0];
+      const productRow = screen
+        .getByText(productToEdit.description)
+        .closest('tr');
+      if (!productRow) throw new Error('Product row not found');
+      const editButton = within(productRow).getByRole('button', {
+        name: /edit/i,
+      });
+
+      await act(async () => {
+        fireEvent.click(editButton);
+      });
+
+      const descriptionInput = screen.getByLabelText(/description/i);
+      fireEvent.change(descriptionInput, { target: { value: 'Edited Desc' } });
+
+      const submitButton = screen.getByRole('button', {
+        name: /save changes/i,
+      });
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
+
+      expect(updateProductSpy).toHaveBeenCalledTimes(1);
+      expect(updateProductSpy).toHaveBeenCalledWith(productToEdit.id, {
+        description: 'Edited Desc',
+        stock: productToEdit.stock,
+        price: productToEdit.price,
+        categories: productToEdit.categories,
+      });
+
+      updateProductSpy.mockRestore();
+    });
+  });
 });
