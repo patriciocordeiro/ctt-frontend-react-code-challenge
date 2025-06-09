@@ -48,4 +48,5 @@ export interface ProductState {
   readonly items: Product[];
   readonly loading: boolean;
   readonly error: string | null;
+  readonly saveLoading?: boolean;
 }

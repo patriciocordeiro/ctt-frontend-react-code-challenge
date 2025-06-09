@@ -13,6 +13,7 @@ export const initialState: ProductState = {
   items: [],
   loading: false,
   error: null,
+  saveLoading: false,
 };
 
 export const productReducer = (
@@ -43,20 +44,20 @@ export const productReducer = (
     case CREATE_PRODUCT_REQUEST:
       return {
         ...state,
-        loading: true,
+        saveLoading: true,
         error: null,
       };
     case CREATE_PRODUCT_SUCCESS:
       return {
         ...state,
-        loading: false,
+        saveLoading: false,
         items: [...state.items, action.payload],
         error: null,
       };
     case CREATE_PRODUCT_FAILURE:
       return {
         ...state,
-        loading: false,
+        saveLoading: false,
         error: action.payload,
       };
     default:

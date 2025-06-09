@@ -104,7 +104,7 @@ describe('productReducer', () => {
     it('should handle CREATE_PRODUCT_REQUEST', () => {
       const expectedState: ProductState = {
         ...stateWithExistingItem,
-        loading: true,
+        saveLoading: true,
         error: null,
       };
       expect(
@@ -115,12 +115,12 @@ describe('productReducer', () => {
     it('should handle CREATE_PRODUCT_SUCCESS', () => {
       const prevState: ProductState = {
         ...stateWithExistingItem,
-        loading: true,
+        saveLoading: true,
         error: 'some previous error',
       };
       const expectedState: ProductState = {
         ...stateWithExistingItem,
-        loading: false,
+        saveLoading: false,
         items: [...stateWithExistingItem.items, newProductFromServer],
         error: null,
       };
@@ -136,11 +136,11 @@ describe('productReducer', () => {
       const errorMessage = 'Failed to create product';
       const prevState: ProductState = {
         ...stateWithExistingItem,
-        loading: true,
+        saveLoading: true,
       };
       const expectedState: ProductState = {
         ...prevState,
-        loading: false,
+        saveLoading: false,
         error: errorMessage,
       };
       expect(
