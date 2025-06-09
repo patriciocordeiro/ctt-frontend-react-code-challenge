@@ -12,14 +12,16 @@ services:
       - json-server
     environment:
       - APP_DEV_PORT=${APP_DEV_PORT}
-
   json-server:
     image: node:18
     working_dir: /data
-    command: npx json-server --watch db.json --port ${JSON_SERVER_PORT}
     volumes:
-      - ./db.json:/data/db.json
+      - ./data:/data
     ports:
       - '${JSON_SERVER_PORT}:${JSON_SERVER_PORT}'
     environment:
       - JSON_SERVER_PORT=${JSON_SERVER_PORT}
+    command: >
+      bash -c "npm install -g json-server &&
+               json-server db.json --host 0.0.0.0 --port ${JSON_SERVER_PORT}"
+
