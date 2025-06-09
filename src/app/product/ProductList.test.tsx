@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
 import { Provider } from 'react-redux';
 import {
@@ -203,6 +203,47 @@ describe('ProductList Component (Connected to Redux)', () => {
     test('should not display error message', () => {
       expect(
         screen.queryByText(/Failed to load products/i)
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('ProductList Component - Add Product Modal', () => {
+    it('should display an "Add Product" button', () => {
+      renderWithProviders(<ProductList />);
+      expect(
+        screen.getByRole('button', { name: /add product/i })
+      ).toBeInTheDocument();
+    });
+
+    it('should open the Add Product modal when "Add Product" button is clicked', async () => {
+      renderWithProviders(<ProductList />);
+
+      const addButton = screen.getByRole('button', { name: /add product/i });
+      fireEvent.click(addButton);
+
+      const modalTitle = await screen.findByRole('heading', {
+        name: /add new product/i,
+        level: 2,
+      });
+      expect(modalTitle).toBeInTheDocument();
+    });
+
+    it('should close the Add Product modal when a "Cancel" button inside the modal is clicked', async () => {
+      renderWithProviders(<ProductList />);
+      const addButton = screen.getByRole('button', { name: /add product/i });
+      fireEvent.click(addButton);
+
+      const modalTitle = await screen.findByRole('heading', {
+        name: /add new product/i,
+      });
+
+      expect(modalTitle).toBeInTheDocument();
+
+      const cancelButton = screen.getByRole('button', { name: /cancel/i });
+      fireEvent.click(cancelButton);
+
+      expect(
+        screen.queryByRole('heading', { name: /add new product/i })
       ).not.toBeInTheDocument();
     });
   });
