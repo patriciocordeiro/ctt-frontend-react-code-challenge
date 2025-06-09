@@ -12,4 +12,7 @@ module.exports = {
       REACT_APP_API_URL: 'http://localhost:3001',
     },
   },
+  moduleNameMapper: {
+    '\\.css$': require.resolve('./src/test/style-mock.js'),
+  },
 };
