@@ -1,6 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import dotenv from 'dotenv';
-dotenv.config();
+
 /**
  * The base URL for API requests, sourced from the environment variable `REACT_APP_API_URL`.
  * This value should be set in the environment configuration to point to the backend server.
