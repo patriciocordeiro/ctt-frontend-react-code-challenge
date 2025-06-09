@@ -1,7 +1,13 @@
 import { Product } from '../../models/product.model';
 import * as actions from './product.actions';
-import { productReducer, initialState } from './product.reducer';
-import { ProductAction, ProductState } from './product.types';
+import { initialState, productReducer } from './product.reducer';
+import {
+  CREATE_PRODUCT_FAILURE,
+  CREATE_PRODUCT_REQUEST,
+  CREATE_PRODUCT_SUCCESS,
+  ProductAction,
+  ProductState,
+} from './product.types';
 
 describe('productReducer', () => {
   const mockProducts: Product[] = [
@@ -72,5 +78,77 @@ describe('productReducer', () => {
     expect(
       productReducer(previousState, actions.fetchProductsFailure(errorMessage))
     ).toEqual(expectedState);
+  });
+
+  describe('productReducer - Create Product', () => {
+    const existingProduct: Product = {
+      id: '1',
+      description: 'Existing',
+      stock: 1,
+      price: 10,
+      categories: [],
+    };
+    const newProductFromServer: Product = {
+      id: '2',
+      description: 'New Product',
+      stock: 5,
+      price: 25,
+      categories: ['new'],
+    };
+
+    const stateWithExistingItem: ProductState = {
+      ...initialState,
+      items: [existingProduct],
+    };
+
+    it('should handle CREATE_PRODUCT_REQUEST', () => {
+      const expectedState: ProductState = {
+        ...stateWithExistingItem,
+        loading: true,
+        error: null,
+      };
+      expect(
+        productReducer(stateWithExistingItem, { type: CREATE_PRODUCT_REQUEST })
+      ).toEqual(expectedState);
+    });
+
+    it('should handle CREATE_PRODUCT_SUCCESS', () => {
+      const prevState: ProductState = {
+        ...stateWithExistingItem,
+        loading: true,
+        error: 'some previous error',
+      };
+      const expectedState: ProductState = {
+        ...stateWithExistingItem,
+        loading: false,
+        items: [...stateWithExistingItem.items, newProductFromServer],
+        error: null,
+      };
+      expect(
+        productReducer(prevState, {
+          type: CREATE_PRODUCT_SUCCESS,
+          payload: newProductFromServer,
+        })
+      ).toEqual(expectedState);
+    });
+
+    it('should handle CREATE_PRODUCT_FAILURE', () => {
+      const errorMessage = 'Failed to create product';
+      const prevState: ProductState = {
+        ...stateWithExistingItem,
+        loading: true,
+      };
+      const expectedState: ProductState = {
+        ...prevState,
+        loading: false,
+        error: errorMessage,
+      };
+      expect(
+        productReducer(prevState, {
+          type: CREATE_PRODUCT_FAILURE,
+          payload: errorMessage,
+        })
+      ).toEqual(expectedState);
+    });
   });
 });

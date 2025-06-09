@@ -1,9 +1,12 @@
 import {
-  ProductState,
-  ProductAction,
+  CREATE_PRODUCT_FAILURE,
+  CREATE_PRODUCT_REQUEST,
+  CREATE_PRODUCT_SUCCESS,
+  FETCH_PRODUCTS_FAILURE,
   FETCH_PRODUCTS_REQUEST,
   FETCH_PRODUCTS_SUCCESS,
-  FETCH_PRODUCTS_FAILURE,
+  ProductAction,
+  ProductState,
 } from './product.types';
 
 export const initialState: ProductState = {
@@ -13,7 +16,7 @@ export const initialState: ProductState = {
 };
 
 export const productReducer = (
-  state: ProductState = initialState,
+  state = initialState,
   action: ProductAction
 ): ProductState => {
   switch (action.type) {
@@ -36,6 +39,25 @@ export const productReducer = (
         loading: false,
         error: action.payload,
         items: [],
+      };
+    case CREATE_PRODUCT_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+    case CREATE_PRODUCT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        items: [...state.items, action.payload],
+        error: null,
+      };
+    case CREATE_PRODUCT_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
       };
     default:
       return state;
