@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-
 import { Product } from '../../models/product.model';
 import {
   createProduct,
   fetchProducts,
+  updateProduct,
 } from '../../store/product/product.actions';
 import { NewProductData } from '../../store/product/product.types';
 import { RootState } from '../../store/rootReducer';
@@ -51,8 +51,8 @@ export const ProductList: React.FC = () => {
   };
 
   const handleSubmitProductForm = (formData: NewProductData, id?: string) => {
-    if (id) {
-      //TODO: dispatch(updateProduct(id, formData));
+    if (id && editingProduct) {
+      dispatch(updateProduct(id, formData));
     } else {
       dispatch(createProduct(formData));
     }
