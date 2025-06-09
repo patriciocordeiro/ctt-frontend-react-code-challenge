@@ -46,8 +46,7 @@ Create an `.env` file in the root of the project directory with the following co
 ```env
 APP_DEV_PORT=3002
 JSON_SERVER_PORT=3001
-API_BASE_URL=http://json-server:${JSON_SERVER_PORT}
-REACT_APP_API_URL=${API_BASE_URL}
+REACT_APP_API_URL="http://localhost:3001"
 ```
 
 You will also need a `db.json` file in the project root for `json-server` to use as its database. You can start with an empty products array:
