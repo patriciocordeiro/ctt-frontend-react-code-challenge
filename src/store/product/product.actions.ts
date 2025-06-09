@@ -4,9 +4,13 @@ import { Product } from '../../models/product.model';
 import httpService from '../../services/http-service';
 import { AppDispatch } from '../store';
 import {
+  CREATE_PRODUCT_FAILURE,
+  CREATE_PRODUCT_REQUEST,
+  CREATE_PRODUCT_SUCCESS,
   FETCH_PRODUCTS_FAILURE,
   FETCH_PRODUCTS_REQUEST,
   FETCH_PRODUCTS_SUCCESS,
+  NewProductData,
   ProductAction,
 } from './product.types';
 
@@ -24,6 +28,20 @@ export const fetchProductsFailure = (error: string): ProductAction => ({
   payload: error,
 });
 
+export const createProductRequest = (): ProductAction => ({
+  type: CREATE_PRODUCT_REQUEST,
+});
+
+export const createProductSuccess = (product: Product): ProductAction => ({
+  type: CREATE_PRODUCT_SUCCESS,
+  payload: product,
+});
+
+export const createProductFailure = (error: string): ProductAction => ({
+  type: CREATE_PRODUCT_FAILURE,
+  payload: error,
+});
+
 // Thunk Actions
 export const fetchProducts = () => async (dispatch: AppDispatch) => {
   dispatch(fetchProductsRequest());
@@ -36,3 +54,17 @@ export const fetchProducts = () => async (dispatch: AppDispatch) => {
     dispatch(fetchProductsFailure((error as AxiosError).message));
   }
 };
+
+export const createProduct =
+  (newProduct: NewProductData) => async (dispatch: AppDispatch) => {
+    dispatch(createProductRequest());
+    try {
+      const response = await httpService.post<Product>(
+        ProductApiEndpoint.Products,
+        newProduct
+      );
+      dispatch(createProductSuccess(response.data));
+    } catch (error) {
+      dispatch(createProductFailure((error as AxiosError).message));
+    }
+  };

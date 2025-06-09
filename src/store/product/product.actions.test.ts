@@ -4,6 +4,7 @@ import { Product } from '../../models/product.model';
 import httpService from '../../services/http-service';
 import { AppDispatch } from '../store';
 import * as productActionCreators from './product.actions';
+import { NewProductData } from './product.types';
 
 jest.mock('../../services/http-service.ts');
 
@@ -70,6 +71,74 @@ describe('Product Thunks - fetchProducts', () => {
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
       productActionCreators.fetchProductsFailure(errorMessage)
+    );
+  });
+});
+
+describe('Product Thunks - createProduct', () => {
+  const mockedHttpService = httpService as jest.Mocked<typeof httpService>;
+
+  const newProductData: NewProductData = {
+    description: 'Brand New Gadget',
+    stock: 50,
+    price: 199.99,
+    categories: ['electronics', 'gadgets'],
+  };
+  const createdProductFromServer: Product = {
+    ...newProductData,
+    id: 'new-uuid-123',
+  };
+
+  it('should dispatch REQUEST and SUCCESS actions on successful product creation', async () => {
+    mockedHttpService.post.mockResolvedValueOnce({
+      data: createdProductFromServer,
+      status: 201,
+      statusText: 'Created',
+      headers: {},
+      config: {} as InternalAxiosRequestConfig,
+    });
+
+    const dispatch = jest.fn() as AppDispatch;
+
+    await productActionCreators.createProduct(newProductData)(dispatch);
+
+    expect(mockedHttpService.post).toHaveBeenCalledTimes(1);
+    expect(mockedHttpService.post).toHaveBeenCalledWith(
+      ProductApiEndpoint.Products,
+      newProductData
+    );
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      productActionCreators.createProductRequest()
+    );
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      productActionCreators.createProductSuccess(createdProductFromServer)
+    );
+  });
+
+  it('should dispatch REQUEST and FAILURE actions on failed product creation', async () => {
+    const errorMessage = 'Failed to create';
+    mockedHttpService.post.mockRejectedValueOnce(new Error(errorMessage));
+
+    const dispatch = jest.fn() as AppDispatch;
+
+    await productActionCreators.createProduct(newProductData)(dispatch);
+
+    expect(mockedHttpService.post).toHaveBeenCalledTimes(2);
+    expect(mockedHttpService.post).toHaveBeenCalledWith(
+      ProductApiEndpoint.Products,
+      newProductData
+    );
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      productActionCreators.createProductRequest()
+    );
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      productActionCreators.createProductFailure(errorMessage)
     );
   });
 });
