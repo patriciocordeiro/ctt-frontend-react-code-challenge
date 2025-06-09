@@ -3,12 +3,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Product } from '../../models/product.model';
 import {
   createProduct,
+  deleteProduct,
   fetchProducts,
   updateProduct,
 } from '../../store/product/product.actions';
 import { NewProductData } from '../../store/product/product.types';
 import { RootState } from '../../store/rootReducer';
 import { AppDispatch } from '../../store/store';
+import ConfirmationModal from './ConfirmationModal';
 import { ProductModal } from './ProductModal';
 
 export const ProductList: React.FC = () => {
@@ -23,6 +25,9 @@ export const ProductList: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [prevSaveLoading, setPrevSaveLoading] = useState(false);
+  const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] =
+    useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -55,6 +60,23 @@ export const ProductList: React.FC = () => {
       dispatch(updateProduct(id, formData));
     } else {
       dispatch(createProduct(formData));
+    }
+  };
+
+  const handleOpenDeleteConfirmModal = (product: Product) => {
+    setProductToDelete(product);
+    setIsConfirmDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteConfirmModal = () => {
+    setProductToDelete(null);
+    setIsConfirmDeleteModalOpen(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (productToDelete) {
+      await dispatch(deleteProduct(productToDelete.id));
+      handleCloseDeleteConfirmModal();
     }
   };
 
@@ -103,6 +125,18 @@ export const ProductList: React.FC = () => {
         />
       )}
 
+      {productToDelete && isConfirmDeleteModalOpen && (
+        <ConfirmationModal
+          isOpen={isConfirmDeleteModalOpen}
+          onClose={handleCloseDeleteConfirmModal}
+          onConfirm={() => {
+            handleConfirmDelete();
+          }}
+          title='Confirm Deletion'>
+          {`Are you sure you want to delete "${productToDelete.description}"?`}
+        </ConfirmationModal>
+      )}
+
       {products.length === 0 && !listLoading ? (
         <p className='no-products-message'>No products available</p>
       ) : (
@@ -135,6 +169,11 @@ export const ProductList: React.FC = () => {
                     onClick={() => handleOpenEditModal(product)}
                     className='edit-button'>
                     Edit
+                  </button>
+                  <button
+                    onClick={() => handleOpenDeleteConfirmModal(product)}
+                    className='delete-button'>
+                    Delete
                   </button>
                 </td>
               </tr>

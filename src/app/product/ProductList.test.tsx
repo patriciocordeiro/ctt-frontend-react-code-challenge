@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
 import { Provider } from 'react-redux';
 import {
@@ -12,6 +12,7 @@ import { Product } from '../../models/product.model';
 import * as productActions from '../../store/product/product.actions';
 import { ProductAction } from '../../store/product/product.types';
 import rootReducer, { RootState } from '../../store/rootReducer';
+import ConfirmationModal from './ConfirmationModal';
 import { ProductList } from './ProductList';
 
 const mockProducts: Product[] = [
@@ -37,6 +38,25 @@ const mockProducts: Product[] = [
     categories: ['cat1', 'cat3'],
   },
 ];
+
+jest.mock('./ConfirmationModal', () => ({
+  __esModule: true,
+  default: jest.fn(({ isOpen, onClose, onConfirm, title, children }) => {
+    if (!isOpen) return null;
+    return (
+      <div data-testid='mock-confirmation-modal'>
+        <h2 id='mock-modal-title'>{title}</h2>
+        <div>{children}</div>
+        <button onClick={onClose}>Cancel</button>
+        <button onClick={onConfirm}>Confirm</button>
+      </div>
+    );
+  }),
+}));
+
+const MockedConfirmationModal = ConfirmationModal as jest.MockedFunction<
+  typeof ConfirmationModal
+>;
 
 type MockStore = Store<RootState, ProductAction> & {
   dispatch: ThunkDispatch<RootState, unknown, ProductAction>;
@@ -298,6 +318,114 @@ describe('ProductList Component (Connected to Redux)', () => {
       expect(
         (screen.getByLabelText(/categories/i) as HTMLInputElement).value
       ).toBe(productToEdit.categories.join(', '));
+    });
+  });
+
+  describe('ProductList Component - Delete Product', () => {
+    const initialStateWithProducts: Partial<RootState> = {
+      products: {
+        items: mockProducts,
+        loading: false,
+        error: null,
+        saveLoading: false,
+      },
+    };
+    const productToDelete = mockProducts[1];
+
+    beforeEach(() => {
+      MockedConfirmationModal.mockClear();
+      jest.restoreAllMocks();
+    });
+
+    it('should render a "Delete" button for each product row', () => {
+      renderWithProviders(<ProductList />, initialStateWithProducts);
+      const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+      expect(deleteButtons.length).toBe(mockProducts.length);
+    });
+
+    it('should open ConfirmationModal with correct message when a "Delete" button is clicked', async () => {
+      renderWithProviders(<ProductList />, initialStateWithProducts);
+
+      const productRow = screen
+        .getByText(productToDelete.description)
+        .closest('tr');
+      if (!productRow) throw new Error('Product row not found');
+      const deleteButton = within(productRow).getByRole('button', {
+        name: /delete/i,
+      });
+
+      await act(async () => {
+        fireEvent.click(deleteButton);
+      });
+
+      expect(MockedConfirmationModal).toHaveBeenCalledTimes(1);
+      const lastCallProps = MockedConfirmationModal.mock.calls[0][0];
+      expect(lastCallProps.isOpen).toBe(true);
+      expect(lastCallProps.title).toBe('Confirm Deletion');
+      expect(
+        screen.getAllByText(
+          `Are you sure you want to delete "${productToDelete.description}"?`
+        ).length
+      ).toBeGreaterThan(0);
+    });
+
+    it('should call delete handler (and eventually dispatch deleteProduct) when deletion is confirmed', async () => {
+      const deleteProductThunkSpy = jest
+        .spyOn(productActions, 'deleteProduct')
+        .mockImplementation(() => () => Promise.resolve());
+
+      renderWithProviders(<ProductList />, initialStateWithProducts);
+
+      const productRow = screen
+        .getByText(productToDelete.description)
+        .closest('tr');
+      if (!productRow) throw new Error('Product row not found');
+      const deleteButton = within(productRow).getByRole('button', {
+        name: /delete/i,
+      });
+
+      await act(async () => {
+        fireEvent.click(deleteButton);
+      });
+
+      const mockModalProps = MockedConfirmationModal.mock.calls[0][0];
+      await act(async () => {
+        mockModalProps.onConfirm();
+      });
+
+      expect(deleteProductThunkSpy).toHaveBeenCalledTimes(1);
+      expect(deleteProductThunkSpy).toHaveBeenCalledWith(productToDelete.id);
+
+      deleteProductThunkSpy.mockRestore();
+    });
+
+    it('should close the ConfirmationModal and not call delete handler when deletion is cancelled', async () => {
+      const deleteProductThunkSpy = jest
+        .spyOn(productActions, 'deleteProduct')
+        .mockImplementation(() => () => Promise.resolve());
+
+      renderWithProviders(<ProductList />, initialStateWithProducts);
+
+      const productRow = screen
+        .getByText(productToDelete.description)
+        .closest('tr');
+      if (!productRow) throw new Error('Product row not found');
+      const deleteButton = within(productRow).getByRole('button', {
+        name: /delete/i,
+      });
+
+      await act(async () => {
+        fireEvent.click(deleteButton);
+      });
+
+      const mockModalProps = MockedConfirmationModal.mock.calls[0][0];
+      await act(async () => {
+        mockModalProps.onClose();
+      });
+
+      expect(deleteProductThunkSpy).not.toHaveBeenCalled();
+
+      deleteProductThunkSpy.mockRestore();
     });
   });
 });
